@@ -8,7 +8,6 @@ import {
 } from 'wagmi';
 import { ChangeEvent, useCallback, useEffect, useState } from 'react';
 import { EthscriptionsAPI } from '../utils/ethscriptionsAPI';
-import { identify, track } from '../utils/analytics';
 
 export function Ethscribe() {
   const { data, error, isLoading, isError, sendTransaction } =
@@ -23,14 +22,12 @@ export function Ethscribe() {
   const account = useAccount();
 
   const [text, setText] = useState('');
-  const [encodedText, setEncodedText] = useState('data:,');
-  const [hex, setHex] = useState('646174613a2c');
+  const [encodedText, setEncodedText] = useState('data:');
+  const [hex, setHex] = useState('646174613a');
 
   const onCheckAvailability = useCallback(async () => {
     const api = new EthscriptionsAPI();
     const { ownerAddress, isTaken } = await api.checkAvailability(encodedText);
-
-    track('checked_availability', { text });
 
     console.log('check availability', ownerAddress, isTaken);
     const message = isTaken
@@ -47,8 +44,6 @@ export function Ethscribe() {
       return;
     }
 
-    track('ethscribed', { text, chainId, receiver: account.address });
-
     sendTransaction({
       to: account.address,
       data: `0x${hex}`,
@@ -58,13 +53,11 @@ export function Ethscribe() {
   useEffect(() => {
     if (!data?.hash) return;
 
-    track('completed_ethscription', { txnHash: data?.hash, chainId });
   }, [data?.hash, chainId]);
 
   const onCopyHex = useCallback(() => {
     navigator.clipboard.writeText(hex);
 
-    track('copied_hex', { text });
 
     // delay so dom stays focused
     setTimeout(() => {
@@ -75,14 +68,13 @@ export function Ethscribe() {
   const handleChange = useCallback((e: ChangeEvent<HTMLInputElement>) => {
     const text = e.target.value;
     setText(text);
-    setEncodedText(`data:,${text}`);
-    setHex(Buffer.from(`data:,${text}`).toString('hex'));
+    setEncodedText(`data:${text}`);
+    setHex(Buffer.from(`data:${text}`).toString('hex'));
   }, []);
 
   useEffect(() => {
     if (!account?.address) return;
 
-    identify(account.address);
   }, [account.address]);
 
   return (

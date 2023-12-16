@@ -10,6 +10,7 @@ import {
   celo,
   fantom,
   Chain,
+  sepolia
 } from 'wagmi/chains';
 
 const opBNBMainnet: Chain = {
@@ -48,6 +49,7 @@ export const evmChains = [
   canto,
   celo,
   fantom,
+  sepolia,
   opBNBMainnet,
 ];
 
